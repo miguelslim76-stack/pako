@@ -1,1 +1,68 @@
-pc
+import os
+
+# Configurações de Preços
+PRECO_BASE_LANDING_PAGE = 700.0  # Com 50% de desconto sai a R$ 350,00
+PRECO_BASE_INSTITUCIONAL = 3000.0 # Com 50% de desconto sai a R$ 1.500,00
+PRECO_BASE_ECOMMERCE = 5000.0    # Com 50% de desconto sai a R$ 2.500,00
+
+PRECO_MINIMO = 350.0 # Trava de segurança: valor mínimo do serviço
+
+# Cupons válidos
+CUPONS_VALIDOS = {
+    "JESUS50": 0.50,
+    "GALÃO50": 0.50,
+    "PROMO50": 0.50
+}
+
+def calcular_orcamento(tipo_site: str, cupom: str = None):
+    # Define o preço base do tipo de site
+    if tipo_site.lower() == "simples":
+        preco_base = PRECO_BASE_LANDING_PAGE
+    elif tipo_site.lower() == "medio":
+        preco_base = PRECO_BASE_INSTITUCIONAL
+    elif tipo_site.lower() == "completo":
+        preco_base = PRECO_BASE_ECOMMERCE
+    else:
+        preco_base = PRECO_BASE_LANDING_PAGE
+
+    desconto_percentual = 0.0
+    cupom_limpo = cupom.upper().strip() if cupom else ""
+
+    # Aplica o desconto se o cupom for válido
+    if cupom_limpo in CUPONS_VALIDOS:
+        desconto_percentual = CUPONS_VALIDOS[cupom_limpo]
+
+    valor_desconto = preco_base * desconto_percentual
+    preco_final = preco_base - valor_desconto
+
+    # Trava para garantir que não cobre menos de R$ 350
+    if preco_final < PRECO_MINIMO:
+        preco_final = PRECO_MINIMO
+
+    return {
+        "preco_original": preco_base,
+        "desconto_reais": valor_desconto,
+        "preco_final": preco_final,
+        "cupom_aplicado": cupom_limpo if desconto_percentual > 0 else "Nenhum"
+    }
+
+# --- EXEMPLO DE USO / TESTE DO CÓDIGO ---
+if __name__ == "__main__":
+    print("=== TESTE DE ORÇAMENTO DA IA ===")
+    
+    # Exemplo 1: Site Simples COM Cupom de 50%
+    resultado = calcular_orcamento(tipo_site="simples", cupom="JESUS50")
+    print(f"Site Simples com Cupom {resultado['cupom_aplicado']}:")
+    print(f" De: R$ {resultado['preco_original']:.2f}")
+    print(f" Por: R$ {resultado['preco_final']:.2f}\n")
+
+    # Exemplo 2: Site Médio COM Cupom
+    resultado_medio = calcular_orcamento(tipo_site="medio", cupom="GALÃO50")
+    print(f"Site Médio com Cupom {resultado_medio['cupom_aplicado']}:")
+    print(f" De: R$ {resultado_medio['preco_original']:.2f}")
+    print(f" Por: R$ {resultado_medio['preco_final']:.2f}\n")
+
+    # Exemplo 3: Site Simples SEM Cupom
+    resultado_sem_cupom = calcular_orcamento(tipo_site="simples")
+    print(f"Site Simples SEM Cupom:")
+    print(f" Valor Final: R$ {resultado_sem_cupom['preco_final']:.2f}")
